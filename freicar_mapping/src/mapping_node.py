@@ -13,7 +13,7 @@ class MappingNode:
         )
         self.tl = TransformListener()
 
-    def bbox_callback(bounding_boxes: BoundingBoxArray):
+    def bbox_callback(self, bounding_boxes: BoundingBoxArray):
         """
         Callback function to handle incoming BoundingBoxArray messages from the
         Aruco detector or the street sign detector.
