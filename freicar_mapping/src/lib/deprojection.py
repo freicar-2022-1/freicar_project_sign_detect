@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
 from geometry_msgs.msg import PoseStamped
-from sensor_msgs.msg import CameraInfo
+from sensor_msgs.msg import CameraInfo, Image
+from lib.depth_processing import compute_median_distance, compute_sign_orientation
+
+from tf.transformations import quaternion_from_euler
 
 # TODO: declare the dependencies in the CMakeList file
 from jsk_recognition_msgs.msg import BoundingBox
@@ -9,7 +12,7 @@ from pyrealsense2 import intrinsics, distortion, rs2_deproject_pixel_to_point
 
 
 def get_relative_pose_from_bbox(
-    bbox: BoundingBox, cam_info: CameraInfo, depth: float
+        bbox: BoundingBox, cam_info: CameraInfo, depth_image: Image
 ) -> PoseStamped:
     """
     Computes the sign pose relative to the camera frame.
@@ -22,7 +25,7 @@ def get_relative_pose_from_bbox(
                 vertical axis of the image, with (0,0) being the upper left coordinate.
         cam_info (sensor_msgs.msg.CameraInfo): Camera intrinsics message
                 published in the .../camera_info topic
-        depth (float): Average distance to the bounding box in meters.
+        depth_image (sensor_msgs.msg.Image): Full depth image at the same timestamp as bbox.
     --------
     Returns:
         sign_pose (PoseStamped): The street sign's pose in the camera frame, timestamped at the
@@ -60,10 +63,14 @@ def get_relative_pose_from_bbox(
             f"CameraInfo message specified unknown distortion model: {cam_info.distortion_model}"
         )
 
+    depth = compute_median_distance(depth_image, bbox)
+
     # call to librealsense2 to do the actual deprojection
     pose_x, pose_y, pose_z = rs2_deproject_pixel_to_point(
         pr2_intrinsics, center_pixel, depth
     )
+
+    yaw = compute_sign_orientation(depth_image, bbox, pr2_intrinsics)
 
     # use a stamped pose message as an easy way to pass on the timestamp and for possibly
     # publishing as a debug message.
@@ -79,7 +86,6 @@ def get_relative_pose_from_bbox(
     sign_pose.pose.position.y = -pose_x
     sign_pose.pose.position.z = -pose_y
 
-    # TODO: set orientation. For this we need to get more than one depth value (e.g. left side
-    # and right side of the bounding box)
+    sign_pose.pose.orientation = quaternion_from_euler(0, 0, yaw)
 
     return sign_pose
