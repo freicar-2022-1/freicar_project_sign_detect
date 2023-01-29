@@ -1,2 +1,6 @@
 cmake-build-debug
 .idea
+*.swn
+*.swo
+*.swp
+__pycache__
