@@ -82,7 +82,7 @@ def compute_distance_scan(depth_image: Image, bbox: BoundingBox) -> list[float]:
 def compute_sign_orientation(depth_image: Image, bbox: BoundingBox, cam_intrinsics: intrinsics) -> float:
     """
     Computes the angle around the Z-axis/yaw (in radians, counter-clockwise around the Z-axis
-    with the negative X-axis (east?) being 0).
+    with the X-axis (east?) being 0).
     See this link for ROS conventions that we (hope to) follow:
     https://www.ros.org/reps/rep-0103.html#axis-orientation
     -----------
