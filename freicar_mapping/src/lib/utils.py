@@ -10,6 +10,7 @@ import rospy
 
 import cv2
 from cv_bridge import CvBridge
+import numpy as np
 
 
 def get_static_caminfo() -> CameraInfo:
@@ -109,6 +110,7 @@ def sign_pose_2_marker_msg(pose: PoseStamped, signtype: int, id_: int, ns: str =
         ns (str): namespace (TODO: how to set this?)
     -----------
     Returns:
+        marker: the Marker message
     --
     Sign type correspond to colors as follows:
     Label 0/Stop : Red
@@ -130,9 +132,9 @@ def sign_pose_2_marker_msg(pose: PoseStamped, signtype: int, id_: int, ns: str =
     marker.pose = pose.pose
 
     # x sets the length of the arrow
-    marker.scale.x = 1
-    marker.scale.y = 0.1
-    marker.scale.z = 0.1
+    marker.scale.x = 0.3
+    marker.scale.y = 0.08
+    marker.scale.z = 0.08
 
     if signtype == 0:
         # Stop sign: red
@@ -166,9 +168,21 @@ def bbox2str(bbox: BoundingBox):
 
 def pose2str(pose: PoseStamped):
     q = pose.pose.orientation
-    theta = euler_from_quaternion([q.x, q.y, q.z, q.w])[2]
+    _, _, theta = euler_from_quaternion([q.x, q.y, q.z, q.w])[2]
     theta_deg = theta/3.14159*180
     s = f"Pose with position ({pose.pose.position.x:.3f}, "
     s += f"{pose.pose.position.y:.3f}, {pose.pose.position.z:.3f}) "
     s += f"and rotation around z: {theta:.3f} rad / {theta_deg:.1f} deg"
     return s
+
+
+def normalize_angle(theta: float) -> float:
+    """
+    normalize the angle and return a value in (-pi,pi)
+    """
+    while theta > np.pi:
+        theta -= 2*np.pi
+    while theta < -np.pi:
+        theta += 2*np.pi
+
+    return theta
