@@ -80,7 +80,9 @@ def compute_distance_scan(depth_image: Image, bbox: BoundingBox) -> List[float]:
     return distance
 
 
-def compute_sign_orientation(depth_image: Image, bbox: BoundingBox, cam_intrinsics: intrinsics) -> float:
+def compute_sign_orientation(
+        depth_image: Image, bbox: BoundingBox, cam_intrinsics: intrinsics
+) -> float:
     """
     Computes the angle around the Z-axis/yaw (in radians, counter-clockwise around the Z-axis
     with the X-axis (east?) being 0).
@@ -142,7 +144,10 @@ def compute_sign_orientation(depth_image: Image, bbox: BoundingBox, cam_intrinsi
     )
     normal = rot90 @ tangent
 
-    # TODO: test all this logic somehow, especially if it's in line with ROS?
+    # Finally get the angle between our tangent vector and the positive x-axis (in the camera
+    # frame, this is the axis pointing straight forward. So the tangent's angles will always be
+    # smaller than -pi/2 or larger than pi/2 if the sign is pointing towards us (which it
+    # always will)
     theta = np.math.atan2(normal[1], normal[0])
 
     return theta

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import CameraInfo, Image
 from lib.depth_processing import compute_median_distance, compute_sign_orientation
