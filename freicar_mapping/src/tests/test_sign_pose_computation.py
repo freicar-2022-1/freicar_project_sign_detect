@@ -14,8 +14,10 @@ def test_sign_pose_computation():
     img_messages = bag.read_messages(image_topic)
     depth_messages = bag.read_messages(depth_topic)
 
-    img_msg = next(img_messages)
-    depth_msg = next(depth_messages)
+    img_bagmsg = next(img_messages)
+    depth_bagmsg = next(depth_messages)
+    img_msg = img_bagmsg.message
+    depth_msg = depth_bagmsg.message
 
     # maps aruco dictionary ids to our labels
     id_mapping = {1: 0, 3: 1, 10: 2}

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from sensor_msgs.msg import Image
+from typing import List
 
 # TODO: declare the dependencies in the CMakeList file
 from jsk_recognition_msgs.msg import BoundingBox
@@ -25,7 +26,7 @@ def compute_median_distance(depth_image: Image, bbox: BoundingBox) -> float:
         distance (float): The median distance of the pixels in the bounding box in meters.
     """
     bridge = CvBridge()
-    image = bridge.imgmsg_to_cv2(depth_image.message, desired_encoding='passthrough')
+    image = bridge.imgmsg_to_cv2(depth_image, desired_encoding='passthrough')
 
     width = int(bbox.dimensions.x)
     height = int(bbox.dimensions.y)
@@ -45,7 +46,7 @@ def compute_median_distance(depth_image: Image, bbox: BoundingBox) -> float:
     return distance
 
 
-def compute_distance_scan(depth_image: Image, bbox: BoundingBox) -> list[float]:
+def compute_distance_scan(depth_image: Image, bbox: BoundingBox) -> List[float]:
     """
     Computes the median distance of each pixel column inside the bounding box.
     -----------
@@ -58,11 +59,11 @@ def compute_distance_scan(depth_image: Image, bbox: BoundingBox) -> list[float]:
                 vertical axis of the image, with (0,0) being the upper left coordinate.
     --------
     Returns:
-        distance_scan (list[float]): The median distances of each pixel column in the bounding
+        distance_scan (List[float]): The median distances of each pixel column in the bounding
         box in meters. Length will be equal to the width of the bbox
     """
     bridge = CvBridge()
-    depth_image = bridge.imgmsg_to_cv2(depth_image.message, desired_encoding='passthrough')
+    depth_image = bridge.imgmsg_to_cv2(depth_image, desired_encoding='passthrough')
 
     width = int(bbox.dimensions.x)
     height = int(bbox.dimensions.y)

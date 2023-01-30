@@ -86,6 +86,10 @@ def get_relative_pose_from_bbox(
     sign_pose.pose.position.y = -pose_x
     sign_pose.pose.position.z = -pose_y
 
-    sign_pose.pose.orientation = quaternion_from_euler(0, 0, yaw)
+    qx, qy, qz, qw = quaternion_from_euler(0, 0, yaw)
+    sign_pose.pose.orientation.x = qx
+    sign_pose.pose.orientation.y = qy
+    sign_pose.pose.orientation.z = qz
+    sign_pose.pose.orientation.w = qw
 
     return sign_pose

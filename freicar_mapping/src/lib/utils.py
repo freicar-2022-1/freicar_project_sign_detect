@@ -2,6 +2,7 @@
 
 from std_msgs.msg import Header
 from sensor_msgs.msg import CameraInfo, RegionOfInterest, Image
+from visualization_msgs.msg import Marker
 from jsk_recognition_msgs.msg import BoundingBox, BoundingBoxArray
 from geometry_msgs.msg import PoseStamped
 from tf.transformations import euler_from_quaternion
@@ -62,7 +63,7 @@ def get_aruco_bbox(image_msg: Image, id_mapping: dict, debug=False) -> BoundingB
     If debug==True, print detected bounding boxes and show them using cv2.imshow.
     """
     bridge = CvBridge()
-    image = bridge.imgmsg_to_cv2(image_msg.message, desired_encoding='bgr8')
+    image = bridge.imgmsg_to_cv2(image_msg, desired_encoding='bgr8')
     aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_5X5_50)
     corners, ids, rejectedImagePts = cv2.aruco.detectMarkers(image, aruco_dict)
     if debug:
@@ -79,7 +80,7 @@ def get_aruco_bbox(image_msg: Image, id_mapping: dict, debug=False) -> BoundingB
             ys = [p[1] for p in corner[0]]
 
             bbox = BoundingBox()
-            bbox.header.stamp = rospy.Time(420)
+            bbox.header.stamp = image_msg.header.stamp
             bbox.pose.position.x = min(xs)
             bbox.pose.position.y = min(ys)
             bbox.dimensions.x = max(xs) - min(xs)
@@ -89,10 +90,71 @@ def get_aruco_bbox(image_msg: Image, id_mapping: dict, debug=False) -> BoundingB
             boxes.append(bbox)
 
     array_header = Header()
-    array_header.frame_id = image_msg.message.header.frame_id
-    array_header.stamp = image_msg.message.header.stamp
+    array_header.frame_id = image_msg.header.frame_id
+    array_header.stamp = image_msg.header.stamp
 
     return BoundingBoxArray(array_header, boxes)
+
+
+def sign_pose_2_marker_msg(pose: PoseStamped, signtype: int, id_: int, ns: str = 'sign'):
+    """
+    Takes a stamped pose and a sign type and returns a marker message that can be published and
+    then visualized in rviz.
+    -----------
+    Parameters:
+        pose (PoseStamped): pose of the sign with position and orientation, header should
+            specify the frame and time.
+        signtype (int): Type of street sign as described below.
+        id_ (int): unique id of the sign.
+        ns (str): namespace (TODO: how to set this?)
+    -----------
+    Returns:
+    --
+    Sign type correspond to colors as follows:
+    Label 0/Stop : Red
+    Label 1/Priority : Pink
+    Label 2/Autonomous driving : Gray
+    Label 3/Traffic cone: Orange
+    --
+    For now uses arrow markers to indicate the orientation of the sign.
+    https://wiki.ros.org/rviz/DisplayTypes/Marker#Arrow_.28ARROW.3D0.29
+    """
+    marker = Marker()
+    marker.header.frame_id = pose.header.frame_id
+    marker.header.stamp = pose.header.stamp
+    marker.ns = ns  # TODO: how to set ns
+    marker.id = id_
+    marker.type = Marker.ARROW
+    marker.action = Marker.ADD
+
+    marker.pose = pose.pose
+
+    # x sets the length of the arrow
+    marker.scale.x = 1
+    marker.scale.y = 0.1
+    marker.scale.z = 0.1
+
+    if signtype == 0:
+        # Stop sign: red
+        r, g, b = (1.00, 0.21, 0.28)
+    elif signtype == 1:
+        # Junction prio: pinkish
+        r, g, b = (0.83, 0.20, 0.72)
+    elif signtype == 2:
+        # Autonomous driving: gray
+        r, g, b = (0.50, 0.50, 0.50)
+    elif signtype == 3:
+        # Traffic cone: orange
+        r, g, b = (0.87, 0.28, 0.16)
+    else:
+        raise ValueError(f"Unknown sign type {signtype}")
+
+    marker.color.a = 1.0
+    marker.color.r = r
+    marker.color.g = g
+    marker.color.b = b
+
+    return marker
 
 
 def bbox2str(bbox: BoundingBox):
@@ -103,7 +165,8 @@ def bbox2str(bbox: BoundingBox):
 
 
 def pose2str(pose: PoseStamped):
-    theta = euler_from_quaternion(pose.pose.orientation)[2]
+    q = pose.pose.orientation
+    theta = euler_from_quaternion([q.x, q.y, q.z, q.w])[2]
     theta_deg = theta/3.14159*180
     s = f"Pose with position ({pose.pose.position.x:.3f}, "
     s += f"{pose.pose.position.y:.3f}, {pose.pose.position.z:.3f}) "
