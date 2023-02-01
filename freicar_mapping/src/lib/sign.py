@@ -31,6 +31,8 @@ class Sign:
 
         # number of measurements received, for updating the average pose
         self.measurements = 1
+        # maximum weight of the previous average when updating the average pose
+        self.history_cap = 7
 
         # try to be a little probabilistic about our type of sign by counting and taking the
         # most frequent one.
@@ -102,15 +104,17 @@ class Sign:
         Parameters:
             other_sign: the measured sign whose position will be incorporated into this sign.
         """
+        prev_avg_weight = min(self.measurements, self.history_cap)
+
         pose, sign_type = other_sign.get_current_average()
         # have to update the mean angle in this special way, because regular averaging won't
         # work for angles
-        sines = np.sin(self.pose[2]) * self.measurements + np.sin(pose[2])
-        cosines = np.cos(self.pose[2]) * self.measurements + np.cos(pose[2])
+        sines = np.sin(self.pose[2]) * prev_avg_weight + np.sin(pose[2])
+        cosines = np.cos(self.pose[2]) * prev_avg_weight + np.cos(pose[2])
         self.pose[2] = np.arctan2(sines, cosines)
 
         # update pose average
-        self.pose[:2] = (self.measurements * self.pose[:2] + pose[:2]) / (self.measurements + 1)
+        self.pose[:2] = (prev_avg_weight * self.pose[:2] + pose[:2]) / (prev_avg_weight + 1)
 
         # increase type occurence count
         self.sign_type_counts[sign_type] += 1
