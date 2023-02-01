@@ -28,6 +28,7 @@ class MappingNode:
         # see
         # https://wiki.ros.org/rospy/Overview/Publishers%20and%20Subscribers
         self.marker_publisher = rospy.Publisher('sign_markers', Marker, queue_size=50)
+        self.bbimg_publisher = rospy.Publisher('aruco_debug', Image, queue_size=50)
 
         self.tl = tf.TransformListener()
         self.tf_exception_counter = 0
@@ -40,7 +41,7 @@ class MappingNode:
         Aruco detector or the street sign detector.
         """
         id_mapping = {1: 0, 3: 1, 10: 2}
-        bounding_boxes = get_aruco_bbox(colorimg_msg, id_mapping)
+        bounding_boxes = get_aruco_bbox(colorimg_msg, id_mapping, marker_pub=self.bbimg_publisher)
         for bbox in bounding_boxes.boxes:
             sign_pose_cam = deprojection.get_relative_pose_from_bbox(bbox, caminfo_msg, depthimg_msg)
             # TODO: transform between freicar_3 and cam?

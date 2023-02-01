@@ -56,12 +56,14 @@ def get_static_caminfo() -> CameraInfo:
     return cam_info
 
 
-def get_aruco_bbox(image_msg: Image, id_mapping: dict, debug=False) -> BoundingBoxArray:
+def get_aruco_bbox(image_msg: Image, id_mapping: dict, debug=False, marker_pub=None) -> BoundingBoxArray:
     """
     Function to get BoundingBoxArray messages of detected Aruco markers in the image for
     testing purposes. id_mapping should map the cv2.aruco.DICT_5X5_50 IDs to the values used in
     the 'label' field of the BoundingBox elements.
     If debug==True, print detected bounding boxes and show them using cv2.imshow.
+    if given a Publisher in marker_pub, will publish Image messages with the detected bounding
+    boxes.
     """
     bridge = CvBridge()
     image = bridge.imgmsg_to_cv2(image_msg, desired_encoding='bgr8')
@@ -73,6 +75,14 @@ def get_aruco_bbox(image_msg: Image, id_mapping: dict, debug=False) -> BoundingB
         cv2.imshow('vis', vis)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+    if marker_pub and ids is not None and len(ids) > 0:
+        vis = cv2.aruco.drawDetectedMarkers(image, corners, ids)
+        bbimgmsg_header = Header()
+        bbimgmsg_header.stamp = image_msg.header.stamp
+        bbimgmsg_header.frame_id = image_msg.header.frame_id
+        bbimgmsg = bridge.cv2_to_imgmsg(vis, encoding='passthrough', header=bbimgmsg_header)
+        marker_pub.publish(bbimgmsg)
+
     boxes = []
     for i, corner in enumerate(corners):
         id_ = ids[i][0]
