@@ -1,37 +1,65 @@
 #!/usr/bin/env python3
 import rospy
+import message_filters
+import tf
+
 from jsk_recognition_msgs.msg import BoundingBoxArray
+from sensor_msgs.msg import Image, CameraInfo
+from visualization_msgs.msg import Marker
+from lib.utils import get_aruco_bbox, sign_pose_2_marker_msg
 
 from lib import deprojection
-from tf import TransformListener
+from lib.map import Map
 
 
 class MappingNode:
     def __init__(self):
-        self.bbox_subscriber = rospy.Subscriber(
-            "bbox", BoundingBoxArray, self.bbox_callback
-        )
-        self.tl = TransformListener()
+        bbox_subscriber = message_filters.Subscriber("/bbox", BoundingBoxArray)
 
-    def bbox_callback(self, bounding_boxes: BoundingBoxArray):
+        depth_subscriber = message_filters.Subscriber("/freicar_3/d435/aligned_depth_to_color/image_raw", Image)
+        caminfo_subscriber = message_filters.Subscriber("/freicar_3/d435/color/camera_info", CameraInfo)
+
+        self.sensor_subscriber = message_filters.TimeSynchronizer(
+            [bbox_subscriber, depth_subscriber, caminfo_subscriber],
+            queue_size=10,
+        )
+        self.sensor_subscriber.registerCallback(self.sensor_callback)
+
+        # TODO: queue size?
+        # see
+        # https://wiki.ros.org/rospy/Overview/Publishers%20and%20Subscribers
+        self.marker_publisher = rospy.Publisher('sign_markers', Marker, queue_size=50)
+        self.bbimg_publisher = rospy.Publisher('aruco_debug', Image, queue_size=50)
+
+        self.tl = tf.TransformListener()
+        self.tf_exception_counter = 0
+
+        self.map = Map()
+
+    def sensor_callback(self, bounding_boxes, depthimg_msg, caminfo_msg):
         """
         Callback function to handle incoming BoundingBoxArray messages from the
         Aruco detector or the street sign detector.
         """
-        for bbox in bounding_boxes:
-            sign_pose_cam = deprojection.get_relative_pose_from_bbox(bbox)
-            # TODO: if we want to use some kind of kalman filter, what is our measurement
-            # space? In case of range-bearing, we would need to calculate that instead of the
-            # sign pose relative to the camera.
-            # TODO: "world" frame doesn't exist in our recording, figure out how to correctly
-            # transform something from the camera frame to global with our setup. Definitely
-            # need to include the vive data in the rosbag. Also, how do we get the transform
-            # from the vive sensor to the camera? We would need the calibration from the other
-            # team i think.
-            sign_pose_world = self.tl.transformPose("world", sign_pose_cam)
-            # TODO: check that we actually pass the recognized sign type as label
-            sign_type = bbox.label
-            # TODO: pass the measurement on to the mapping function.
+        #id_mapping = {1: 0, 3: 1, 10: 2}
+        #bounding_boxes = get_aruco_bbox(colorimg_msg, id_mapping, marker_pub=self.bbimg_publisher)
+        for bbox in bounding_boxes.boxes:
+            sign_pose_cam = deprojection.get_relative_pose_from_bbox(bbox, caminfo_msg, depthimg_msg)
+            # TODO: transform between freicar_3 and cam?
+            sign_pose_cam.header.frame_id = "freicar_3"
+            try:
+                sign_pose_world = self.tl.transformPose("world", sign_pose_cam)
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                # if no transform can be found, skip (when testing this only occured at the
+                # begining of bag playback
+                self.tf_exception_counter += 1
+                rospy.loginfo("Encountered exception while looking up transform"
+                              + f"({self.tf_exception_counter} encountered so far)")
+                continue
+
+            self.map.add_observation(sign_pose_world, sign_type=bbox.label)
+            # TODO: don't publish so often?
+            self.map.publish_markers(self.marker_publisher, bbox.header.stamp)
 
 
 if __name__ == "__main__":
