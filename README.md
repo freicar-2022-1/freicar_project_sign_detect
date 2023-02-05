@@ -1,4 +1,4 @@
-# Freicar group 1 final project: Traffic sign detection and pose estimation
+# Traffic sign detection with the YOLOv7 neural network, ARUCO marker detection, and mapping for ROS
 
 For autonomous driving, it is key to detect traffic signs and to map them.
 
@@ -9,6 +9,8 @@ Chosen landmarks for mapping were the German stop sign, the this-junction-priori
 ![Sensor-equipped RC car, a stop sign (class 0), a this-junction-priority-sign (class 1), an autonomous driving sign (clasc 2) and a traffic cone (class 3)](images/car-and-classes.jpg)
 
 Traffic signs were printed out to paper and glued on wooden mounts. The size of the traffic signs is 10x10 centimeters. Below, an [ARUCO marker](https://learnopencv.com/augmented-reality-using-aruco-markers-in-opencv-c-python/) encoding the sign type was printed.
+
+Components have been implemented as ROS nodes. ROS ([Robot Operating System](https://www.ros.org/)) provides a framework for basic common robot tasks.
 
 ## Training the YOLOv7 model
 
