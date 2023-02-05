@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import CameraInfo, Image
-from lib.depth_processing import compute_median_distance, compute_sign_orientation, compute_center_distance
+from lib.depth_processing import compute_median_distance, compute_sign_orientation, compute_closest_distance
+import rospy
 
 from tf.transformations import quaternion_from_euler
 
@@ -65,7 +66,8 @@ def get_relative_pose_from_bbox(
         )
 
     if is_cone:
-        depth = compute_center_distance(depth_image, bbox)
+        # for cones, use a different method to get the avg distance
+        depth = compute_closest_distance(depth_image, bbox)
     else:
         depth = compute_median_distance(depth_image, bbox)
 

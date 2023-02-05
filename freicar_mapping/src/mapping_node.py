@@ -11,20 +11,30 @@ from lib.utils import get_aruco_bbox, sign_pose_2_marker_msg, bbox2str, check_bb
 from lib import deprojection
 from lib.map import Map
 import numpy
+import sys
+import argparse
 
 
 class MappingNode:
-    def __init__(self):
-        bbox_subscriber = message_filters.Subscriber("/freicar_3/trafficsigndetect/prediction/raw", BoundingBoxArray)
-
+    def __init__(self, use_aruco, use_yolo):
         depth_subscriber = message_filters.Subscriber("/freicar_3/d435/aligned_depth_to_color/image_raw", Image)
         caminfo_subscriber = message_filters.Subscriber("/freicar_3/d435/color/camera_info", CameraInfo)
 
-        self.sensor_subscriber = message_filters.TimeSynchronizer(
-            [bbox_subscriber, depth_subscriber, caminfo_subscriber],
-            queue_size=10,
-        )
-        self.sensor_subscriber.registerCallback(self.sensor_callback)
+        if use_yolo:
+            yolo_subscriber = message_filters.Subscriber("/freicar_3/trafficsigndetect/prediction/raw", BoundingBoxArray)
+            self.sensor_subscriber_yolo = message_filters.TimeSynchronizer(
+                [yolo_subscriber, depth_subscriber, caminfo_subscriber],
+                queue_size=100
+            )
+            self.sensor_subscriber_yolo.registerCallback(self.sensor_callback)
+
+        if use_aruco:
+            aruco_subscriber = message_filters.Subscriber("/aruco_bbox", BoundingBoxArray)
+            self.sensor_subscriber_aruco = message_filters.TimeSynchronizer(
+                [aruco_subscriber, depth_subscriber, caminfo_subscriber],
+                queue_size=100
+            )
+            self.sensor_subscriber_aruco.registerCallback(self.sensor_callback)
 
         # TODO: queue size?
         # see
@@ -39,13 +49,13 @@ class MappingNode:
 
     def sensor_callback(self, bounding_boxes, depthimg_msg, caminfo_msg):
         """
-        Callback function to handle incoming BoundingBoxArray messages from the
+        Function to handle incoming BoundingBoxArray messages from either the
         Aruco detector or the street sign detector.
         """
         rospy.logdebug(f"received Bboxarray with {len(bounding_boxes.boxes)} boxes")
         for bbox in bounding_boxes.boxes:
             if not check_bbox(bbox, caminfo_msg):
-                rospy.logwarn(f"Found weird bbox: {bbox2str(bbox)}")
+                rospy.logwarn(f"Ignoring weird bbox: {bbox2str(bbox)}")
                 continue
 
             try:
@@ -76,9 +86,17 @@ class MappingNode:
 
 
 if __name__ == "__main__":
-    rospy.init_node("mapping_node")
+    # TODO: if we use a launch file, we maybe have to set the argparse differently
+    # https://discourse.ros.org/t/getting-python-argparse-to-work-with-a-launch-file-or-python-node/10606
+    parser = argparse.ArgumentParser(
+        description="Mapping node argparse"
+    )
+    parser.add_argument('--aruco', action='store_true')
+    parser.add_argument('--yolo', action='store_true')
+    args = parser.parse_args(sys.argv[1:])
+    rospy.init_node("mapping_node", log_level=rospy.INFO)
     rospy.loginfo("Starting mapping node...")
-    mapping_node = MappingNode()
+    mapping_node = MappingNode(use_aruco=args.aruco, use_yolo=args.yolo)
     rospy.loginfo("Mapping node started.")
 
     try:
