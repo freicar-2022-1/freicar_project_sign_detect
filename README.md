@@ -8,6 +8,8 @@ Chosen landmarks for mapping were the German stop sign, the this-junction-priori
 
 ![Sensor-equipped RC car, a stop sign (class 0), a this-junction-priority-sign (class 1), an autonomous driving sign (clasc 2) and a traffic cone (class 3)](images/car-and-classes.jpg)
 
+Traffic signs were printed out to paper and glued on wooden mounts. The size of the traffic signs is 10x10 centimeters. Below, an [ARUCO marker](https://learnopencv.com/augmented-reality-using-aruco-markers-in-opencv-c-python/) encoding the sign type was printed.
+
 ## Training the YOLOv7 model
 
 For object detection of camera images with traffic signs, we obtained best results using the YOLOv7X neural network, pretrained on the COCO dataset (download [here](https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7x.pt)).
