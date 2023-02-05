@@ -20,7 +20,7 @@ from utils.torch_utils import select_device, time_synchronized
 
 
 # CONFIGURATION BEGIN
-WEIGHTS_PATH = 'runs/train/exp20/weights/best.pt'
+WEIGHTS_PATH = 'runs/train/exp30/weights/best.pt'
 AUGMENTED_INFERENCE = False
 IMG_SIZE = 640
 STRIDE = 32
@@ -37,7 +37,7 @@ class MLInferenceNode:
         self.cv_bridge = CvBridge()
 
         self.pred_image_publisher = rospy.Publisher(
-            OUT_TOPIC_CAM_IMAGES_WITH_BOUNDING_BOXES, Image, queue_size=10)
+            OUT_TOPIC_CAM_IMAGES_WITH_BOUNDING_BOXES, Image, queue_size=1)
         self.bbox_publisher = rospy.Publisher(
             OUT_TOPIC_BOUNDING_BOXES, BoundingBoxArray, queue_size=10)
 

@@ -47,9 +47,12 @@ def compute_median_distance(depth_image: Image, bbox: BoundingBox) -> float:
     return distance
 
 
-def compute_center_distance(depth_image: Image, bbox: BoundingBox) -> float:
+def compute_closest_distance(depth_image: Image, bbox: BoundingBox) -> float:
     """
-    Computes the median distance of the 4x4 center of the bounding box (for traffic cones)
+    Computes the distance to the closest detected object inside the bounding
+    box. Good for bounding boxes which include lots of background (e.g. from
+    traffic cones). Does not work if foreground objects are overlapping with
+    the bounding box.
     -----------
     Parameters:
         depth_image: depth image message
@@ -60,8 +63,7 @@ def compute_center_distance(depth_image: Image, bbox: BoundingBox) -> float:
                 vertical axis of the image, with (0,0) being the upper left coordinate.
     --------
     Returns:
-        distance (float): The median distance of the pixels in the center of the bounding box
-        in meters.
+        distance (float): The median distance of the closest pixels in the bounding box
     """
     bridge = CvBridge()
     image = bridge.imgmsg_to_cv2(depth_image, desired_encoding='passthrough')
@@ -72,16 +74,19 @@ def compute_center_distance(depth_image: Image, bbox: BoundingBox) -> float:
     x = int(bbox.pose.position.x)
     y = int(bbox.pose.position.y)
 
-    roi_upperleft = (y + (height//2) - 1, x + (width//2) - 1)
     # addressing is flipped here because it is a matrix
-    roi = image[roi_upperleft[1]:roi_upperleft[1]+2, roi_upperleft[0]:roi_upperleft[0]+2]
+    roi = image[y:y+height, x:x+width]
 
-    # TODO: depth values appear to be mm, but are they really? In the docs of librealsense2
-    # they mention something about retrieving some scale:
-    # https://github.com/IntelRealSense/librealsense/wiki/Projection-in-RealSense-SDK-2.0#depth-image-formats
-    distance_mm = np.median(roi)
+    # only take pixels that are further away than 10mm
+    roi_filtered = roi[roi > 10]
+
+    # find the closest pixels and discard everything that is further away than
+    # closest + 50mm
+    closest = np.min(roi_filtered)
+    roi_filtered = roi_filtered[roi_filtered < closest+50]
+
+    distance_mm = np.median(roi_filtered)
     distance = distance_mm / 1000
-
     return distance
 
 def compute_distance_scan(depth_image: Image, bbox: BoundingBox) -> List[float]:

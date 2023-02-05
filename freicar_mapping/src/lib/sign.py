@@ -32,7 +32,7 @@ class Sign:
         # number of measurements received, for updating the average pose
         self.measurements = 1
         # maximum weight of the previous average when updating the average pose
-        self.history_cap = 7
+        self.history_cap = 25
 
         # try to be a little probabilistic about our type of sign by counting and taking the
         # most frequent one.
@@ -76,7 +76,7 @@ class Sign:
         # TODO: tune the two stdevs below
         if sign_type == own_sign_type:
             # standard deviation (in m)if sign types match
-            stdev = 0.6
+            stdev = 0.4
         else:
             # standard deviation (in m) if they don't
             stdev = 0.15

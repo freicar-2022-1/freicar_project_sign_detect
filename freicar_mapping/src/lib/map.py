@@ -81,7 +81,7 @@ class Map:
         """
         # TODO: is MarkerArray better?
         for i, sign in enumerate(self.signs):
-            if sign.measurements < 2:
+            if sign.measurements < 3:
                 # don't show signs with less than 2 measurements because they
                 # might be false detections
                 continue
