@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import CameraInfo, Image
-from lib.depth_processing import compute_median_distance, compute_sign_orientation
+from lib.depth_processing import compute_median_distance, compute_sign_orientation, compute_center_distance
 
 from tf.transformations import quaternion_from_euler
 
@@ -11,7 +11,7 @@ from pyrealsense2 import intrinsics, distortion, rs2_deproject_pixel_to_point
 
 
 def get_relative_pose_from_bbox(
-        bbox: BoundingBox, cam_info: CameraInfo, depth_image: Image
+        bbox: BoundingBox, cam_info: CameraInfo, depth_image: Image, is_cone: bool = False
 ) -> PoseStamped:
     """
     Computes the sign pose relative to the camera frame.
@@ -25,6 +25,8 @@ def get_relative_pose_from_bbox(
         cam_info (sensor_msgs.msg.CameraInfo): Camera intrinsics message
                 published in the .../camera_info topic
         depth_image (sensor_msgs.msg.Image): Full depth image at the same timestamp as bbox.
+        is_cone (bool): If true, treat this sign as a traffic cone (distance computation is
+        done using just the center pixels)
     --------
     Returns:
         sign_pose (PoseStamped): The street sign's pose in the camera frame, timestamped at the
@@ -62,14 +64,21 @@ def get_relative_pose_from_bbox(
             f"CameraInfo message specified unknown distortion model: {cam_info.distortion_model}"
         )
 
-    depth = compute_median_distance(depth_image, bbox)
+    if is_cone:
+        depth = compute_center_distance(depth_image, bbox)
+    else:
+        depth = compute_median_distance(depth_image, bbox)
 
     # call to librealsense2 to do the actual deprojection
     pose_x, pose_y, pose_z = rs2_deproject_pixel_to_point(
         pr2_intrinsics, center_pixel, depth
     )
 
-    yaw = compute_sign_orientation(depth_image, bbox, pr2_intrinsics)
+    if is_cone:
+        # traffic cones don't need rotation
+        yaw = 0
+    else:
+        yaw = compute_sign_orientation(depth_image, bbox, pr2_intrinsics)
 
     # use a stamped pose message as an easy way to pass on the timestamp and for possibly
     # publishing as a debug message.

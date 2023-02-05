@@ -42,8 +42,6 @@ class MappingNode:
         Callback function to handle incoming BoundingBoxArray messages from the
         Aruco detector or the street sign detector.
         """
-        #id_mapping = {1: 0, 3: 1, 10: 2}
-        #bounding_boxes = get_aruco_bbox(colorimg_msg, id_mapping, marker_pub=self.bbimg_publisher)
         rospy.logdebug(f"received Bboxarray with {len(bounding_boxes.boxes)} boxes")
         for bbox in bounding_boxes.boxes:
             if not check_bbox(bbox, caminfo_msg):
@@ -51,10 +49,12 @@ class MappingNode:
                 continue
 
             try:
-                sign_pose_cam = deprojection.get_relative_pose_from_bbox(bbox, caminfo_msg, depthimg_msg)
+                sign_pose_cam = deprojection.get_relative_pose_from_bbox(bbox, caminfo_msg,
+                                                                         depthimg_msg, is_cone=(bbox.label == 3))
             except SystemError as e:
                 if "LinAlgError" in str(e):
-                    rospy.logwarn(f"Encountered linalg error: {bbox2str(bbox)}")
+                    rospy.logwarn(f"Encountered linalg error while trying to get orientation"
+                                  + f"from sign: {bbox2str(bbox)}")
                     continue
                 else:
                     raise

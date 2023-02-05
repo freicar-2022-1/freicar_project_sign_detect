@@ -47,6 +47,43 @@ def compute_median_distance(depth_image: Image, bbox: BoundingBox) -> float:
     return distance
 
 
+def compute_center_distance(depth_image: Image, bbox: BoundingBox) -> float:
+    """
+    Computes the median distance of the 4x4 center of the bounding box (for traffic cones)
+    -----------
+    Parameters:
+        depth_image: depth image message
+        bbox (jsk_recognition_msgs.msg.BoundingBox): Bounding box message describing the
+                position of the sign (street sign or Aruco marker) in the image plane. Assumes
+                the bbox to be axis-aligned and rectangular, and thus only uses x,y of the
+                message's pose and dimensions and assumes x as the horizontal and y as the
+                vertical axis of the image, with (0,0) being the upper left coordinate.
+    --------
+    Returns:
+        distance (float): The median distance of the pixels in the center of the bounding box
+        in meters.
+    """
+    bridge = CvBridge()
+    image = bridge.imgmsg_to_cv2(depth_image, desired_encoding='passthrough')
+
+    width = int(bbox.dimensions.x)
+    height = int(bbox.dimensions.y)
+
+    x = int(bbox.pose.position.x)
+    y = int(bbox.pose.position.y)
+
+    roi_upperleft = (y + (height//2) - 1, x + (width//2) - 1)
+    # addressing is flipped here because it is a matrix
+    roi = image[roi_upperleft[1]:roi_upperleft[1]+2, roi_upperleft[0]:roi_upperleft[0]+2]
+
+    # TODO: depth values appear to be mm, but are they really? In the docs of librealsense2
+    # they mention something about retrieving some scale:
+    # https://github.com/IntelRealSense/librealsense/wiki/Projection-in-RealSense-SDK-2.0#depth-image-formats
+    distance_mm = np.median(roi)
+    distance = distance_mm / 1000
+
+    return distance
+
 def compute_distance_scan(depth_image: Image, bbox: BoundingBox) -> List[float]:
     """
     Computes the median distance of each pixel column inside the bounding box.
