@@ -14,11 +14,10 @@ import torch.backends.cudnn as cudnn
 from numpy import random
 
 from models.experimental import attempt_load
-from utils.datasets import LoadStreams, LoadImages, letterbox
-from utils.general import check_img_size, check_requirements, check_imshow, non_max_suppression, apply_classifier, \
-    scale_coords, xyxy2xywh, strip_optimizer, set_logging, increment_path
+from utils.datasets import letterbox
+from utils.general import check_img_size, non_max_suppression, scale_coords, xyxy2xywh, set_logging
 from utils.plots import plot_one_box
-from utils.torch_utils import select_device, load_classifier, time_synchronized, TracedModel
+from utils.torch_utils import select_device, time_synchronized, TracedModel
 
 
 # CONFIGURATION BEGIN
@@ -32,6 +31,7 @@ IN_TOPIC_CAM_IMAGES = "/freicar_3/d435/color/image_raw"
 OUT_TOPIC_CAM_IMAGES_WITH_BOUNDING_BOXES = '/freicar_3/trafficsigndetect/prediction/image'
 OUT_TOPIC_BOUNDING_BOXES = '/freicar_3/trafficsigndetect/prediction/raw'
 # CONFIGURATION END
+
 
 class MLInferenceNode:
     def __init__(self):
@@ -56,9 +56,6 @@ class MLInferenceNode:
         self.imgsz = check_img_size(
             self.imgsz, s=self.stride)  # check img_size
 
-        if False:
-            self.model = TracedModel(self.model, self.device, opt.img_size)
-
         if self.half:
             self.model.half()  # to FP16
 
@@ -82,10 +79,6 @@ class MLInferenceNode:
         Passes them to the ML model for object detection.
         Publishes the results.
         """
-        # if not hasattr(self, 'model'):
-        #    # Model still initializing, cannot do inference
-        #    return
-
         print("########")
         print("Got camera image")
         try:
@@ -98,14 +91,6 @@ class MLInferenceNode:
         self.detect_bboxes(cv2_img, msg.header.stamp)
 
     def detect_bboxes(self, camera_img, cv2_img_timestamp):
-        # img = np.swapaxes(camera_img, 0, 2)
-
-        # dataset = LoadImages('camera_image.jpg',
-        #                     img_size=self.imgsz, stride=self.stride)
-        # dataset.__iter__()
-        # assert dataset.__len__() == 1
-        # path, img, im0s, vid_cap = dataset.__next__()
-
         img = letterbox(camera_img, self.imgsz, stride=STRIDE)[0]
         img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
         img = np.ascontiguousarray(img)
@@ -196,7 +181,8 @@ class MLInferenceNode:
             else:
                 print("No objcets detected")
 
-            # Stream results
+            # Write curent detections to filesystem
+            # You may enable this for debugging
             if False:
                 cv2.imwrite('camera_image_pred.jpg', im0)
 
