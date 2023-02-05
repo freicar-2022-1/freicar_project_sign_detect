@@ -7,17 +7,16 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from jsk_recognition_msgs.msg import BoundingBox, BoundingBoxArray
 import numpy as np
+from numpy import random
 import cv2
 import time
 import torch
-import torch.backends.cudnn as cudnn
-from numpy import random
 
 from models.experimental import attempt_load
 from utils.datasets import letterbox
 from utils.general import check_img_size, non_max_suppression, scale_coords, xyxy2xywh, set_logging
 from utils.plots import plot_one_box
-from utils.torch_utils import select_device, time_synchronized, TracedModel
+from utils.torch_utils import select_device, time_synchronized
 
 
 # CONFIGURATION BEGIN
@@ -181,7 +180,7 @@ class MLInferenceNode:
             else:
                 print("No objcets detected")
 
-            # Write curent detections to filesystem
+            # Write current detections to filesystem
             # You may enable this for debugging
             if False:
                 cv2.imwrite('camera_image_pred.jpg', im0)
