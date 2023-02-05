@@ -68,7 +68,7 @@ def get_aruco_bbox(image_msg: Image, id_mapping: dict, debug=False, marker_pub=N
     bridge = CvBridge()
     image = bridge.imgmsg_to_cv2(image_msg, desired_encoding='bgr8')
     aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_5X5_50)
-    corners, ids, rejectedImagePts = cv2.aruco.detectMarkers(image, aruco_dict)
+    corners, ids, rejectedImagePts = cv2.aruco.ArucoDetector(aruco_dict, cv2.aruco.DetectorParameters()).detectMarkers(image)
     if debug:
         print(f'corners: {corners}\nids: {ids}\n rejectedImagePts: {rejectedImagePts}')
         vis = cv2.aruco.drawDetectedMarkers(image, corners, ids)
