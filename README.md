@@ -31,7 +31,7 @@ $ python train.py \
     --multi-scale
 ```
 
-Afterwards, we freezed most of the layers and trained the model on our own small traffic sign dataset, using the following command:
+Afterwards, we freezed the backbone of the network (see file `freicar_traffic_sign_detect/yolov7/cfg/training/yolov7x_freicar.yaml` for the network architecture) that counts 59 layers and trained the model on our own small traffic sign dataset, using the following command:
 
 ```bash
 $ python train.py \
@@ -43,7 +43,7 @@ $ python train.py \
     --batch-size 16 \
     --img-size 640 640 \
     --multi-scale \
-    --freeze 10
+    --freeze 59
 ```
 
 The resulting best weights file (`runs/train/expXX/best.pt`) was used for the inference ROS node.
