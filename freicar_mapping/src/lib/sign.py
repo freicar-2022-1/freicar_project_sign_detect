@@ -75,10 +75,10 @@ class Sign:
 
         # TODO: tune the two stdevs below
         if sign_type == own_sign_type:
-            # 30cm standard deviation if sign types match
-            stdev = 0.3
+            # standard deviation (in m)if sign types match
+            stdev = 0.6
         else:
-            # 15cm standard deviation if they don't
+            # standard deviation (in m) if they don't
             stdev = 0.15
 
         # evaluate a normal distribution to get a probability for the distance between

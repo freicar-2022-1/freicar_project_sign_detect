@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from sensor_msgs.msg import Image
 from typing import List
+import rospy
 
 # TODO: declare the dependencies in the CMakeList file
 from jsk_recognition_msgs.msg import BoundingBox

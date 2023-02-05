@@ -157,6 +157,10 @@ def sign_pose_2_marker_msg(pose: PoseStamped, signtype: int, id_: int, ns: str =
         r, g, b = (0.50, 0.50, 0.50)
     elif signtype == 3:
         # Traffic cone: orange
+        marker.type = Marker.SPHERE
+        marker.scale.x = 0.15
+        marker.scale.y = 0.15
+        marker.scale.z = 0.15
         r, g, b = (0.87, 0.28, 0.16)
     else:
         raise ValueError(f"Unknown sign type {signtype}")
@@ -175,6 +179,22 @@ def bbox2str(bbox: BoundingBox):
     s += f"y: {bbox.pose.position.y}+{bbox.dimensions.y}"
     return s
 
+def check_bbox(bbox: BoundingBox, caminfo: CameraInfo) -> bool:
+    img_height = caminfo.height
+    img_width = caminfo.width
+
+    upperleft = (bbox.pose.position.x, bbox.pose.position.y)
+    dimensions = (bbox.dimensions.x, bbox.dimensions.y)
+
+    if bbox.label < 0 or bbox.label > 3:
+        return False
+    if upperleft[0] < 0 or upperleft[1] < 0:
+        return False
+    if upperleft[0] + dimensions[0] > img_width:
+        return False
+    if upperleft[1] + dimensions[1] > img_height:
+        return False
+    return True
 
 def pose2str(pose: PoseStamped):
     q = pose.pose.orientation

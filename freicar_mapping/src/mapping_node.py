@@ -6,15 +6,16 @@ import tf
 from jsk_recognition_msgs.msg import BoundingBoxArray
 from sensor_msgs.msg import Image, CameraInfo
 from visualization_msgs.msg import Marker
-from lib.utils import get_aruco_bbox, sign_pose_2_marker_msg
+from lib.utils import get_aruco_bbox, sign_pose_2_marker_msg, bbox2str, check_bbox
 
 from lib import deprojection
 from lib.map import Map
+import numpy
 
 
 class MappingNode:
     def __init__(self):
-        bbox_subscriber = message_filters.Subscriber("/bbox", BoundingBoxArray)
+        bbox_subscriber = message_filters.Subscriber("/freicar_3/trafficsigndetect/prediction/raw", BoundingBoxArray)
 
         depth_subscriber = message_filters.Subscriber("/freicar_3/d435/aligned_depth_to_color/image_raw", Image)
         caminfo_subscriber = message_filters.Subscriber("/freicar_3/d435/color/camera_info", CameraInfo)
@@ -43,8 +44,20 @@ class MappingNode:
         """
         #id_mapping = {1: 0, 3: 1, 10: 2}
         #bounding_boxes = get_aruco_bbox(colorimg_msg, id_mapping, marker_pub=self.bbimg_publisher)
+        rospy.logdebug(f"received Bboxarray with {len(bounding_boxes.boxes)} boxes")
         for bbox in bounding_boxes.boxes:
-            sign_pose_cam = deprojection.get_relative_pose_from_bbox(bbox, caminfo_msg, depthimg_msg)
+            if not check_bbox(bbox, caminfo_msg):
+                rospy.logwarn(f"Found weird bbox: {bbox2str(bbox)}")
+                continue
+
+            try:
+                sign_pose_cam = deprojection.get_relative_pose_from_bbox(bbox, caminfo_msg, depthimg_msg)
+            except SystemError as e:
+                if "LinAlgError" in str(e):
+                    rospy.logwarn(f"Encountered linalg error: {bbox2str(bbox)}")
+                    continue
+                else:
+                    raise
             # TODO: transform between freicar_3 and cam?
             sign_pose_cam.header.frame_id = "freicar_3"
             try:

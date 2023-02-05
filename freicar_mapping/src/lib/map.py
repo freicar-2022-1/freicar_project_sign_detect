@@ -64,12 +64,12 @@ class Map:
             # Possible solution: Add them, but only visualize them after they've been observed
             # a few times
             self.signs.append(observed_sign)
-            rospy.loginfo(f"Added new {str(observed_sign)} to the map")
+            rospy.logdebug(f"Added new {str(observed_sign)} to the map")
         else:
             # Good association found, update the sign's pose
             most_probable_assoc = np.argmax(p_assoc)
             self.signs[most_probable_assoc].update(observed_sign)
-            rospy.loginfo(f"Updated pose of known {str(self.signs[most_probable_assoc])} "
+            rospy.logdebug(f"Updated pose of known {str(self.signs[most_probable_assoc])} "
                           + f"with new observed {str(observed_sign)}")
 
     def publish_markers(self, pub: rospy.Publisher, timestamp: rospy.Time):
@@ -81,5 +81,9 @@ class Map:
         """
         # TODO: is MarkerArray better?
         for i, sign in enumerate(self.signs):
+            if sign.measurements < 2:
+                # don't show signs with less than 2 measurements because they
+                # might be false detections
+                continue
             marker = sign.get_marker(i, timestamp)
             pub.publish(marker)
