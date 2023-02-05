@@ -1,5 +1,11 @@
-cmake-build-debug
+# IDEs 
 .idea
+.vscode
+
+# Python virtualenv
+.venv
+
+cmake-build-debug
 *.swn
 *.swo
 *.swp
