@@ -1,0 +1,14 @@
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+train: ../labelme-to-coco/freicar-dataset-1-coco/images/train_v1  # train images (relative to 'path')
+val: ../labelme-to-coco/freicar-dataset-1-coco/images/val_v1  # val images (relative to 'path')
+test: ../labelme-to-coco/freicar-dataset-1-coco/images/test_v1 # test images (optional)
+
+# Number of classes
+nc: 4
+
+# Classes
+names:
+  0: stop
+  1: thisjunctionpriority
+  2: autonomousdriving
+  3: trafficcone

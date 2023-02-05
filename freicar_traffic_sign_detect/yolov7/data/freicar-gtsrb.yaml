@@ -1,0 +1,13 @@
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+train: ../gtsrb-to-coco/processed_dataset/images/train_v1  # train images (relative to 'path')
+val: ../gtsrb-to-coco/processed_dataset/images/val_v1  # val images (relative to 'path')
+test: ../gtsrb-to-coco/processed_dataset/images/test_v1 # test images (optional)
+
+# Number of classes
+nc: 2
+
+# Classes
+names:
+  0: thisjunctionpriority
+  1: stop
+
