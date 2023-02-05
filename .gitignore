@@ -5,6 +5,9 @@
 # Python virtualenv
 .venv
 
+# ROS bag recordings
+*.bag
+
 cmake-build-debug
 *.swn
 *.swo
