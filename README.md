@@ -6,6 +6,8 @@ This project is part of the [FreiCar lab course](freicar.informatik.uni-freiburg
 
 Chosen landmarks for mapping were the German stop sign, the this-junction-priority sign, the autonomous driving landmark sign and orange traffic cones. These have been distributed manually in a robot hall. Afterwards, one of the FreiCar cars was driven remote-controlled through the hall, recording the front camera image ([Intel RealSense D435](https://www.intelrealsense.com/depth-camera-d435/)) and ground-truth poses from an indoor localization system ([HTC Vive Tracker](https://www.vive.com/us/accessory/tracker3/)). Object detection and mapping were run offline on a powerful machine.
 
+![Sensor-equipped RC car, a stop sign (class 0), a this-junction-priority-sign (class 1), an autonomous driving sign (clasc 2) and a traffic cone (class 3)](images/car-and-classes.jpg)
+
 ## Training the YOLOv7 model
 
 For object detection of camera images with traffic signs, we obtained best results using the YOLOv7X neural network, pretrained on the COCO dataset (download [here](https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7x.pt)).
