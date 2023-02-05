@@ -186,6 +186,8 @@ def check_bbox(bbox: BoundingBox, caminfo: CameraInfo) -> bool:
     upperleft = (bbox.pose.position.x, bbox.pose.position.y)
     dimensions = (bbox.dimensions.x, bbox.dimensions.y)
 
+    if dimensions[0] < 6 or dimensions[1] < 6:
+        return False
     if bbox.label < 0 or bbox.label > 3:
         return False
     if upperleft[0] < 0 or upperleft[1] < 0:
