@@ -94,9 +94,20 @@ if __name__ == "__main__":
     parser.add_argument('--aruco', action='store_true')
     parser.add_argument('--yolo', action='store_true')
     args = parser.parse_args(sys.argv[1:])
+
     rospy.init_node("mapping_node", log_level=rospy.INFO)
     rospy.loginfo("Starting mapping node...")
-    mapping_node = MappingNode(use_aruco=args.aruco, use_yolo=args.yolo)
+
+    if args.yolo:
+        rospy.loginfo(f'Using just YOLO object detection model for bounding boxes.')
+        mapping_node = MappingNode(use_aruco=args.aruco, use_yolo=args.yolo)
+    elif args.aruco:
+        rospy.loginfo(f'Using just Aruco detector for bounding boxes.')
+        mapping_node = MappingNode(use_aruco=args.aruco, use_yolo=args.yolo)
+    else:
+        rospy.loginfo(f'Neither --yolo nor --aruco specified, using both.')
+        mapping_node = MappingNode(use_aruco=True, use_yolo=True)
+
     rospy.loginfo("Mapping node started.")
 
     try:

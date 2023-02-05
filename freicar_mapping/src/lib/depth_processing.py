@@ -87,6 +87,7 @@ def compute_closest_distance(depth_image: Image, bbox: BoundingBox) -> float:
 
     distance_mm = np.median(roi_filtered)
     distance = distance_mm / 1000
+
     return distance
 
 def compute_distance_scan(depth_image: Image, bbox: BoundingBox) -> List[float]:
