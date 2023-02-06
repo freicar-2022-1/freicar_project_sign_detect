@@ -2,7 +2,7 @@
 
 For autonomous driving, it is key to detect traffic signs and to map them.
 
-This project is part of the [FreiCar lab course](freicar.informatik.uni-freiburg.de/) at the University of Freiburg, Germany.
+This project is part of the [FreiCar lab course](https://freicar.informatik.uni-freiburg.de/) at the [University of Freiburg](https://uni-freiburg.de/), Germany.
 
 Chosen landmarks for mapping were the German stop sign, the this-junction-priority sign, the autonomous driving landmark sign and orange traffic cones. These have been distributed manually in a robot hall. Afterwards, one of the FreiCar cars was driven remote-controlled through the hall, recording the front camera image ([Intel RealSense D435](https://www.intelrealsense.com/depth-camera-d435/)) and ground-truth poses from an indoor localization system ([HTC Vive Tracker](https://www.vive.com/us/accessory/tracker3/)). Object detection and mapping were run offline on a powerful machine.
 
