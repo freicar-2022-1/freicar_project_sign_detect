@@ -98,7 +98,10 @@ if __name__ == "__main__":
     rospy.init_node("mapping_node", log_level=rospy.INFO)
     rospy.loginfo("Starting mapping node...")
 
-    if args.yolo:
+    if args.yolo and args.aruco:
+        rospy.loginfo(f'Using Aruco detector and YOLO object detection model for bounding boxes.')
+        mapping_node = MappingNode(use_aruco=args.aruco, use_yolo=args.yolo)
+    elif args.yolo:
         rospy.loginfo(f'Using just YOLO object detection model for bounding boxes.')
         mapping_node = MappingNode(use_aruco=args.aruco, use_yolo=args.yolo)
     elif args.aruco:
