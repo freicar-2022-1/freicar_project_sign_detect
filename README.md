@@ -89,6 +89,14 @@ Outputs a message with:
 2) The sign type: Stop, Priority, Autonomous driving, according to the Id’s of Markers
 3) Timestamp
 
+### Mapping node
+
+The mapping node is located in `./freicar_mapping`. It receives bounding boxes of detected signs from either the Aruco detector, the YOLOv7 traffic sign detector, or both (see paragraph about running the nodes for parameters). The incoming bounding box messages are synchronized with the depth images from the D435 RGBD camera and Camera Info messages.
+
+From the bounding boxes, we calculate the 2d sign pose and orientation in the camera frame (using a deprojection function provided by Intel librealsense2and) then transform it to world frame using the TF TransformListener.
+
+The mapping node then tries to associate the measured signs to known signs using a simple greedy data association scheme. If a good association has been found, we update the sign's pose using a running average and keep track of the most frequently observed type for each sign using a majority vote. The mapping node also publishes marker messages for each sign to visualize in Rviz.
+
 
 ## Building and running the ROS nodes
 
@@ -98,15 +106,15 @@ Please follow these instructions for building and running the ROS nodes.
 
 The commands have to be run inside the docker in the `~/freicar_ws` directory.
 - To build the nodes:
-```
-catkin build -cs
-```
+    1. Make sure required Python modules are installed: basic ROS modules, [jsk_recognition_msgs](http://wiki.ros.org/jsk_recognition_msgs), [pyrealsense2](https://pypi.org/project/pyrealsense2/), cv2, numpy
+    2. run `catkin build -cs` from workspace directory
+
 - To run the nodes:
 ```
 # Street sign detection node:
 rosrun freicar_street_sign street_sign.py
 # Mapping node:
-rosrun freicar_mapping mapping_node.py
+rosrun freicar_mapping mapping_node.py [--yolo] [--aruco]
 ```
 If the packages aren't found, check `echo $ROS_PACKAGE_PATH`
 - To clean the build artifacts just for our nodes:
