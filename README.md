@@ -82,9 +82,13 @@ YOLOv7's [original repository](https://github.com/WongKinYiu/yolov7) has been cl
 
 ### ARUCO marker traffic sign detector
 
-The mapping algorithm is located in the `freicar_aruco_detect` directory.
+The aruco detector is located in the `freicar_aruco_detect` directory.
 
-...
+Outputs a message with:
+1) Bounding box: position and dimensions (in pixel space)
+2) The sign type: Stop, Priority, Autonomous driving, according to the Id’s of Markers
+3) Timestamp
+
 
 ## Building and running the ROS nodes
 
