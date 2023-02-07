@@ -48,6 +48,20 @@ $ python train.py \
 
 The resulting best weights file (`runs/train/expXX/best.pt`) was used for the inference ROS node.
 
+### Training results on the test split
+
+Precision/confidence curve:
+![Precision/confidence curve](images/P_curve.png)
+
+Recall/confidence curve:
+![Recall/confidence curve](images/R_curve.png)
+
+F1/confidence curve:
+![Recall/confidence curve](images/F1_curve.png)
+
+Confusion matrix:
+![Confusion matrix](images/confusion_matrix.png)
+
 ### GTSRB to COCO label coverter
 
 After downloading the [GTSRB dataset](https://benchmark.ini.rub.de/gtsrb_dataset.html) (see `gtsrb-to-coco/download_dataset.sh`), the label format needed to be converted into the COCO label format used by YOLOv7.
