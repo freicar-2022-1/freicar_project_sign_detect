@@ -80,12 +80,6 @@ To convert the label format used by labelme to the COCO label format, run `$ cd 
 
 The project consists of three [ROS](https://www.ros.org/) nodes.
 
-### Mapping algorithm
-
-The mapping algorithm is located in the `freicar_mapping` directory.
-
-...
-
 ### YOLOv7 traffic sign detector
 
 The traffic sign detector is located in the `freicar_traffic_sign_detect` directory.
@@ -105,7 +99,9 @@ Outputs a message with:
 
 ### Mapping node
 
-The mapping node is located in `./freicar_mapping`. It receives bounding boxes of detected signs from either the Aruco detector, the YOLOv7 traffic sign detector, or both (see paragraph about running the nodes for parameters). The incoming bounding box messages are synchronized with the depth images from the D435 RGBD camera and Camera Info messages.
+The mapping node is located in the `freicar_mapping` directory.
+
+It receives bounding boxes of detected signs from either the Aruco detector, the YOLOv7 traffic sign detector, or both (see paragraph about running the nodes for parameters). The incoming bounding box messages are synchronized with the depth images from the D435 RGBD camera and Camera Info messages.
 
 From the bounding boxes, we calculate the 2d sign pose and orientation in the camera frame (using a deprojection function provided by Intel librealsense2and) then transform it to world frame using the TF TransformListener.
 
