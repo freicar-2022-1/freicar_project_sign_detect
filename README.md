@@ -62,6 +62,11 @@ F1/confidence curve:
 Confusion matrix:
 ![Confusion matrix](images/confusion_matrix.png)
 
+### Inference examples on the test split
+![Inference example 1](images/test-split-predictions/pred-1.jpg)
+![Inference example 2](images/test-split-predictions/pred-2.jpg)
+![Inference example 3](images/test-split-predictions/pred-3.jpg)
+
 ### GTSRB to COCO label coverter
 
 After downloading the [GTSRB dataset](https://benchmark.ini.rub.de/gtsrb_dataset.html) (see `gtsrb-to-coco/download_dataset.sh`), the label format needed to be converted into the COCO label format used by YOLOv7.
